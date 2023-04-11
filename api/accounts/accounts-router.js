@@ -44,20 +44,21 @@ router.put(
   "/:id",
   middleware.checkAccountId,
   middleware.checkAccountPayload,
-  (req, res, next) => {
+  async (req, res, next) => {
     // DO YOUR MAGIC
     try {
-      res.json("update account");
+      const newAccount = await Account.create(req.body);
+      return res.json(newAccount);
     } catch (err) {
-      next(err);
+      next(err.message);
     }
   }
 );
 
-router.delete("/:id", middleware.checkAccountId, (req, res, next) => {
-  // DO YOUR MAGIC
+router.delete("/:id", middleware.checkAccountId, async (req, res, next) => {
   try {
-    res.json("delete account");
+    await Account.deleteById(req.params.id);
+    res.json(req.account);
   } catch (err) {
     next(err);
   }

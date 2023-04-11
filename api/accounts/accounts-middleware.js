@@ -1,4 +1,5 @@
 const Account = require("./accounts-model");
+const db = require("../../data/db-config");
 
 exports.checkAccountPayload = async (req, res, next) => {
   const { name, budget } = req.body;
@@ -13,12 +14,12 @@ exports.checkAccountPayload = async (req, res, next) => {
         .json({ message: "name of account must be between 3 and 100" });
     } else {
       const parsedBudget = Number(budget);
-      if (Number.isNaN(parsedBudget)) {
-        res.status(400).json({ message: "budget must be a number" });
+      if (isNaN(parsedBudget)) {
+        res.status(400).json({ message: "budget of account must be a number" });
       } else if (parsedBudget < 0 || parsedBudget > 1000000) {
         res
           .status(400)
-          .json({ message: "budget must be between 0 and 1000000" });
+          .json({ message: "budget of account is too large or too small" });
       } else {
         next();
       }
@@ -26,10 +27,20 @@ exports.checkAccountPayload = async (req, res, next) => {
   }
 };
 
-exports.checkAccountNameUnique = (req, res, next) => {
-  // DO YOUR MAGIC
-  console.log("checkAccountNameUnique fired");
-  next();
+exports.checkAccountNameUnique = async (req, res, next) => {
+  try {
+    const existing = await db("accounts")
+      .where("name", req.body.name.trim())
+      .first();
+
+    if (existing) {
+      next({ status: 400, message: "that name is taken" });
+    } else {
+      next();
+    }
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.checkAccountId = async (req, res, next) => {
