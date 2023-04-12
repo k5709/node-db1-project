@@ -4,7 +4,7 @@ const db = require("../../data/db-config");
 exports.checkAccountPayload = async (req, res, next) => {
   const { name, budget } = req.body;
 
-  if (!name || !budget) {
+  if (name === undefined || budget === undefined) {
     res.status(400).json({ message: "name and budget are required" });
   } else {
     const trimmedName = name.trim();
@@ -14,13 +14,15 @@ exports.checkAccountPayload = async (req, res, next) => {
         .json({ message: "name of account must be between 3 and 100" });
     } else {
       const parsedBudget = Number(budget);
-      if (isNaN(parsedBudget)) {
+      if (!parsedBudget) {
         res.status(400).json({ message: "budget of account must be a number" });
       } else if (parsedBudget < 0 || parsedBudget > 1000000) {
         res
           .status(400)
           .json({ message: "budget of account is too large or too small" });
       } else {
+        req.body.name = trimmedName;
+        req.body.budget = parsedBudget;
         next();
       }
     }
